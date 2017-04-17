@@ -54,7 +54,7 @@ const sample_fmt_entry_t k_sample_fmt_entries[] = {
 
 AVPixelFormat GetAVPixelFormat(FFPixelFormat pix_fmt) {
     for (int i = 0; i < FF_ARRAY_ELEMS(k_pix_fmt_entries); i++) {
-        struct pix_fmt_entry_t *entry = &k_pix_fmt_entries[i];
+        const struct pix_fmt_entry_t *entry = &k_pix_fmt_entries[i];
         if (pix_fmt == entry->pix_fmt)
             return entry->av_pix_fmt;
     }
@@ -63,7 +63,7 @@ AVPixelFormat GetAVPixelFormat(FFPixelFormat pix_fmt) {
 
 FFPixelFormat GetFFPixelFormat(AVPixelFormat pix_fmt) {
     for (int i = 0; i < FF_ARRAY_ELEMS(k_pix_fmt_entries); i++) {
-        struct pix_fmt_entry_t *entry = &k_pix_fmt_entries[i];
+        const struct pix_fmt_entry_t *entry = &k_pix_fmt_entries[i];
         if (pix_fmt == entry->av_pix_fmt)
             return entry->pix_fmt;
     }
@@ -72,7 +72,7 @@ FFPixelFormat GetFFPixelFormat(AVPixelFormat pix_fmt) {
 
 AVCodecID GetAVCodecID(FFCodecID codec_id) {
     for (int i = 0; i < FF_ARRAY_ELEMS(k_codec_id_entries); i++) {
-        struct codec_id_entry_t *entry = &k_codec_id_entries[i];
+        const struct codec_id_entry_t *entry = &k_codec_id_entries[i];
         if (codec_id == entry->codec_id)
             return entry->av_codec_id;
     }
@@ -81,7 +81,7 @@ AVCodecID GetAVCodecID(FFCodecID codec_id) {
 
 FFCodecID GetFFCodecID(AVCodecID codec_id) {
     for (int i = 0; i < FF_ARRAY_ELEMS(k_codec_id_entries); i++) {
-        struct codec_id_entry_t *entry = &k_codec_id_entries[i];
+        const struct codec_id_entry_t *entry = &k_codec_id_entries[i];
         if (codec_id == entry->av_codec_id)
             return entry->codec_id;
     }
@@ -90,16 +90,16 @@ FFCodecID GetFFCodecID(AVCodecID codec_id) {
 
 AVSampleFormat GetAVSampleFormat(FFSampleFormat sample_fmt) {
     for (int i = 0; i < FF_ARRAY_ELEMS(k_sample_fmt_entries); i++) {
-        struct sample_fmt_entry_t *entry = &k_sample_fmt_entries[i];
+        const struct sample_fmt_entry_t *entry = &k_sample_fmt_entries[i];
         if (sample_fmt == entry->sample_fmt)
             return entry->av_sample_fmt;
     }
-    return AV_PIX_FMT_NONE;
+    return AV_SAMPLE_FMT_NONE;
 }
 
 FFSampleFormat GetFFSampleFormat(AVSampleFormat sample_fmt) {
     for (int i = 0; i < FF_ARRAY_ELEMS(k_sample_fmt_entries); i++) {
-        struct sample_fmt_entry_t *entry = &k_sample_fmt_entries[i];
+        const struct sample_fmt_entry_t *entry = &k_sample_fmt_entries[i];
         if (sample_fmt == entry->av_sample_fmt)
             return entry->sample_fmt;
     }

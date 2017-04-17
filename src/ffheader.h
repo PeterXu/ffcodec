@@ -10,6 +10,7 @@ extern "C" {
 #include "libavutil/frame.h"
 #include "libavutil/avutil.h"
 #include "libswscale/swscale.h"
+#include "libavutil/opt.h"
 };
 
 // ffmpeg libs

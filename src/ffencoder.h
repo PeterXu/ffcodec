@@ -24,8 +24,8 @@ protected:
     long openCodec(ff_codec_t codec, const FFAudioFormat &format);
 
 private:
-    ff_codec_t *m_video;
-    ff_codec_t *m_audio;
+    ff_codec_t m_video;
+    ff_codec_t m_audio;
     FFVideoFormat m_vfmt;
 };
 

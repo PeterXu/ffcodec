@@ -18,7 +18,7 @@ long FFDecoder::openCodec(ff_codec_t codec, FFCodecID codec_id) {
     returnv_if_fail(pCodec, -1);
 
     AVCodecID av_codec_id = GetAVCodecID(codec_id);
-    return_if_fail(av_codec_id != AV_CODEC_ID_NONE, -1);
+    returnv_if_fail(av_codec_id != AV_CODEC_ID_NONE, -1);
 
     pCodec->codec = avcodec_find_decoder(av_codec_id);
     returnv_if_fail(pCodec->codec, -1);
@@ -42,13 +42,13 @@ long FFDecoder::openVideo(FFCodecID codec_id) {
 
     long lret = openCodec(m_video, codec_id);
     if (lret != 0) {
-        safe_delete(m_video);
+        safe_delete_codec(m_video);
         LOGE("fail to open ff_codec_id="<<codec_id<<", return=" << lret);
     }
     return lret;
 }
 void FFDecoder::closeVideo() {
-    safe_delete(m_video);
+    safe_delete_codec(m_video);
     m_vfmt.reset();
 }
 
@@ -58,13 +58,13 @@ long FFDecoder::openAudio(FFCodecID codec_id) {
     returnv_if_fail(m_audio, -1);
     long lret = openCodec(m_audio, codec_id);
     if (lret != 0) {
-        safe_delete(m_audio);
+        safe_delete_codec(m_audio);
         LOGE("fail to open ff_codec_id="<<codec_id<<", return=" << lret);
     }
     return lret;
 }
 void FFDecoder::closeAudio() {
-    safe_delete(m_audio);
+    safe_delete_codec(m_audio);
 }
 
 // return consumed bytes(>0) if success, else < 0
@@ -75,7 +75,7 @@ long FFDecoder::decodeVideo(const uint8_t *in_data, int in_size, uint8_t *out_da
 
     // required output format
     int out_width = out_fmt.width;
-    int out_height = out_fmt.heght;
+    int out_height = out_fmt.height;
     AVPixelFormat out_pix_fmt = GetAVPixelFormat(out_fmt.pix_fmt);
     if (out_pix_fmt == AV_PIX_FMT_NONE) {
         LOGE("unsupported output ff_pix_fmt="<<out_fmt.pix_fmt);
@@ -131,7 +131,7 @@ long FFDecoder::decodeVideo(const uint8_t *in_data, int in_size, uint8_t *out_da
                 out_width, out_height, out_pix_fmt, SWS_FAST_BILINEAR,
                 NULL, NULL, NULL);
     }
-    returnv_if_fail(pCodeoc->swsctx, -1);
+    returnv_if_fail(pCodec->swsctx, -1);
 
     // sws convert
     iret = sws_scale(pCodec->swsctx, pCodec->frame->data, pCodec->frame->linesize, 0, pCodec->frame->height,

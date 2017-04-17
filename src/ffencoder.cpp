@@ -18,7 +18,7 @@ long FFEncoder::openContext(ff_codec_t codec, FFCodecID codec_id) {
     returnv_if_fail(pCodec, -1);
 
     AVCodecID av_codec_id = GetAVCodecID(codec_id);
-    return_if_fail(av_codec_id != AV_CODEC_ID_NONE, -1);
+    returnv_if_fail(av_codec_id != AV_CODEC_ID_NONE, -1);
 
     pCodec->codec = avcodec_find_encoder(av_codec_id);
     returnv_if_fail(pCodec->codec, -1);
@@ -112,11 +112,11 @@ long FFEncoder::openVideo(FFCodecID codec_id, const FFVideoFormat &format) {
         if (lret == 0)
             return 0;
     }
-    safe_delete(m_video);
+    safe_delete_codec(m_video);
     return lret;
 }
 void FFEncoder::closeVideo() {
-    safe_delete(m_video);
+    safe_delete_codec(m_video);
     m_vfmt.reset();
 }
 
@@ -131,15 +131,15 @@ long FFEncoder::openAudio(FFCodecID codec_id, const FFAudioFormat &format) {
         if (lret == 0)
             return 0;
     }
-    safe_delete(m_audio);
+    safe_delete_codec(m_audio);
     return lret;
 }
 void FFEncoder::closeAudio() {
-    safe_delete(m_audio);
+    safe_delete_codec(m_audio);
 }
 
 // return 0 if success, else < 0
-int FFEncoder::encodeVideo(const uint8_t *in_data, int in_size, const FFVideoFormat &in_fmt, 
+long FFEncoder::encodeVideo(const uint8_t *in_data, int in_size, const FFVideoFormat &in_fmt, 
         uint8_t *out_data, int &out_size) {
     returnv_if_fail(m_video, -1);
     returnv_if_fail(out_data, -1);
@@ -190,26 +190,23 @@ int FFEncoder::encodeVideo(const uint8_t *in_data, int in_size, const FFVideoFor
                 pCodec->avctx->width, pCodec->avctx->height, pCodec->avctx->pix_fmt, SWS_FAST_BILINEAR,
                 NULL, NULL, NULL);
         }
-        returnv_if_fail(pCodeoc->swsctx, -1);
+        returnv_if_fail(pCodec->swsctx, -1);
 
         // prepare sws output frame
         if (!pCodec->frame2) {
             pCodec->frame2 = av_frame_alloc();
             pCodec->frame2->width = pCodec->avctx->width;
             pCodec->frame2->height = pCodec->avctx->height;
-            pCodec->frame2->pix_fmt = pCodec->avctx->pix_fmt;
+            pCodec->frame2->format = pCodec->avctx->pix_fmt;
             int iret = av_frame_get_buffer(pCodec->frame2, 0);
             returnv_if_fail(iret==0, -1);
         }
 
-        // prepare sws input linesize
-        int sws_in_linesize[4] = { 0 };
-        int iret = av_image_fill_linesizes(sws_in_linesize, in_pix_fmt, in_fmt.width);
-        returnv_if_fail(iret >= 0, -1);
-
         // prepare sws input data
+        int sws_in_linesize[4] = { 0 };
         uint8_t *sws_in_data[4] = { 0 };
-        iret = av_image_fill_pointers(sws_in_data, in_pix_fmt, in_fmt.height, in_data, sws_in_linesize);
+        int iret = av_image_fill_arrays(sws_in_data, sws_in_linesize, 
+                in_data, in_pix_fmt, in_fmt.width, in_fmt.height, 0);
         returnv_if_fail(iret > 0 && iret <= in_size, -1);
 
         // sws convert (for input frame)
@@ -226,12 +223,9 @@ int FFEncoder::encodeVideo(const uint8_t *in_data, int in_size, const FFVideoFor
             pCodec->frame->height = in_fmt.height;
         }
 
-        // prepare raw input linesize
-        int iret = av_image_fill_linesizes(pCodec->frame->linesize, in_pix_fmt, in_fmt.width);
-        returnv_if_fail(iret >= 0, -1);
-
         // prepare raw input data
-        iret = av_image_fill_pointers(pCodec->frame->data, in_pix_fmt, in_fmt.height, in_data, pCodec->frame->linesize);
+        int iret = av_image_fill_arrays(pCodec->frame->data, pCodec->frame->linesize,
+                in_data, in_pix_fmt, in_fmt.width, in_fmt.height, 0);
         returnv_if_fail(iret > 0 && iret <= in_size, -1);
 
         input_frame = pCodec->frame;
@@ -240,7 +234,7 @@ int FFEncoder::encodeVideo(const uint8_t *in_data, int in_size, const FFVideoFor
     // encode frame
     int got_output = 0;
     int iret = avcodec_encode_video2(pCodec->avctx, &pCodec->avpkt, input_frame, &got_output);
-    if (ret < 0 || got_output <= 0) {
+    if (iret < 0 || got_output <= 0) {
         LOGE("encode failure or no output, return="<<iret);
         return -1;
     }
@@ -250,8 +244,7 @@ int FFEncoder::encodeVideo(const uint8_t *in_data, int in_size, const FFVideoFor
 }
 
 // return 0 if success, else < 0
-int FFEncoder::encodeAudio(const uint8_t *in_data, int in_size, const FFVideoFormat &in_fmt, 
-        uint8_t *out_data, int &out_size) {
+long FFEncoder::encodeAudio(const uint8_t *in_data, const int in_size, uint8_t *out_data, int &out_size) {
     returnv_if_fail(m_video, -1);
     returnv_if_fail(out_data, -1);
 
@@ -284,7 +277,7 @@ int FFEncoder::encodeAudio(const uint8_t *in_data, int in_size, const FFVideoFor
 
     // encode frame
     int got_output = 0;
-    int iret = avcodec_encode_audio2(pCodec->avctx, &pCodec->avpkt, pCodec->frame, &got_output);
+    iret = avcodec_encode_audio2(pCodec->avctx, &pCodec->avpkt, pCodec->frame, &got_output);
     if (iret < 0 || got_output <= 0) {
         LOGE("encode failure or no output, return="<<iret);
         return -1;

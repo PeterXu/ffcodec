@@ -47,6 +47,8 @@ public:
 };
 
 
+#define safe_delete_codec(p) do {if(p) delete (FFCodec *)p; p = NULL;}while(0)
+
 // for const variables
 AVPixelFormat GetAVPixelFormat(FFPixelFormat pix_fmt);
 FFPixelFormat GetFFPixelFormat(AVPixelFormat pix_fmt);

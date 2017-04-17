@@ -3,6 +3,8 @@
 
 #include "ffheader.h"
 
+typedef void * ff_codec_t;
+
 enum FFMediaType {
     FF_MEDIA_VIDEO,
     FF_MEDIA_AUDIO,
@@ -13,6 +15,7 @@ enum FFPixelFormat {
     FF_PIX_FMT_I420,
     FF_PIX_FMT_RGB24,
     FF_PIX_FMT_BGR24,
+    FF_PIX_FMT_NV21,
 
     FF_PIX_FMT_NB
 };
@@ -23,12 +26,14 @@ enum FFSampleFormat {
     FF_SAMPLE_FMT_S16,  // pcm s16
     FF_SAMPLE_FMT_S32,  // pcm s32
     FF_SAMPLE_FMT_FLT,  // pcm float
+    FF_SAMPLE_FMT_DBL,  // pcm double
 
     // planar
-    AV_SAMPLE_FMT_U8P,
-    AV_SAMPLE_FMT_S16P,
-    AV_SAMPLE_FMT_S32P,
-    AV_SAMPLE_FMT_FLTP,
+    FF_SAMPLE_FMT_U8P,
+    FF_SAMPLE_FMT_S16P,
+    FF_SAMPLE_FMT_S32P,
+    FF_SAMPLE_FMT_FLTP,
+    FF_SAMPLE_FMT_DBLP,
 
     FF_SAMPLE_FMT_NB    // Number of sample formats
 };
@@ -46,7 +51,6 @@ enum FFCodecID {
     FF_CODEC_ID_NB
 };
 
-typedef void * ff_codec_t;
 
 class FFAudioFormat {
 public:
